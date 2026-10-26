@@ -1,0 +1,31 @@
+# ---------------------------------------------------------------
+# Uploaded files are data, never code.
+# Nothing in this folder may be executed as a script, and only
+# image files are served.
+# ---------------------------------------------------------------
+
+Options -Indexes -ExecCGI
+
+# Stop PHP (mod_php and PHP-FPM/CGI handlers)
+<IfModule mod_php.c>
+    php_flag engine off
+</IfModule>
+<IfModule mod_php7.c>
+    php_flag engine off
+</IfModule>
+RemoveHandler .php .phtml .php3 .php4 .php5 .php7 .php8 .phar .pht .phps .cgi .pl .py .sh
+RemoveType .php .phtml .php3 .php4 .php5 .php7 .php8 .phar .pht .phps
+SetHandler default-handler
+
+# Allow images only; deny everything else (including .htaccess itself)
+<FilesMatch ".*">
+    Require all denied
+</FilesMatch>
+<FilesMatch "(?i)\.(webp|jpe?g|png)$">
+    Require all granted
+</FilesMatch>
+
+<IfModule mod_headers.c>
+    Header set X-Content-Type-Options "nosniff"
+    Header set Content-Security-Policy "default-src 'none'; img-src 'self'; style-src 'unsafe-inline'"
+</IfModule>

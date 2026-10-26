@@ -1,0 +1,96 @@
+Options -Indexes
+DirectoryIndex index.php
+
+<IfModule mod_rewrite.c>
+    RewriteEngine On
+
+    # Pass the Authorization header to PHP (Steadfast webhook Bearer token)
+    RewriteCond %{HTTP:Authorization} .
+    RewriteRule .* - [E=HTTP_AUTHORIZATION:%{HTTP:Authorization}]
+
+    # Optional: force HTTPS at the server level (the app already redirects
+    # to the APP_URL scheme/host when APP_ENV=production). Uncomment once
+    # the SSL certificate works:
+    # RewriteCond %{HTTPS} !=on
+    # RewriteCond %{HTTP:X-Forwarded-Proto} !https
+    # RewriteRule ^ https://%{HTTP_HOST}%{REQUEST_URI} [L,R=301]
+
+    # Serve existing files (CSS, JS, images) directly
+    RewriteCond %{REQUEST_FILENAME} -f [OR]
+    RewriteCond %{REQUEST_FILENAME} -d
+    RewriteRule ^ - [L]
+
+    # Everything else goes to the front controller
+    RewriteRule ^ index.php [L,QSA]
+</IfModule>
+
+# Never print PHP errors to visitors, even before the app starts (mod_php hosts;
+# PHP-FPM/CGI hosts use public/.user.ini instead)
+<IfModule mod_php.c>
+    php_flag display_errors Off
+    php_flag display_startup_errors Off
+    php_flag log_errors On
+</IfModule>
+
+# Hidden files (.htaccess, .user.ini, .gitkeep ...) are never served
+<FilesMatch "^\.">
+    Require all denied
+</FilesMatch>
+
+# Nor are PHP's own error_log file (cPanel writes it next to index.php for
+# errors before the app starts), database dumps, backups/archives or logs
+<FilesMatch "^(error_log|php_errorlog)$|\.(sql|gz|zip|tar|tgz|rar|7z|bak|old|orig|swp|log|ini|md|env)$">
+    Require all denied
+</FilesMatch>
+
+# ---------------------------------------------------------------
+# Security headers for static files only. PHP pages send their own
+# (send_security_headers() in app/helpers/functions.php); adding them
+# here too would duplicate them.
+# ---------------------------------------------------------------
+<IfModule mod_headers.c>
+    <FilesMatch "\.(css|js|svg|webp|jpe?g|png|gif|ico|woff2?|txt|xml)$">
+        Header set X-Content-Type-Options "nosniff"
+        Header set Referrer-Policy "strict-origin-when-cross-origin"
+    </FilesMatch>
+</IfModule>
+
+# ---------------------------------------------------------------
+# Compression (text only; images are already compressed)
+# ---------------------------------------------------------------
+<IfModule mod_brotli.c>
+    AddOutputFilterByType BROTLI_COMPRESS text/html text/plain text/css text/xml application/xml application/javascript text/javascript application/json image/svg+xml
+</IfModule>
+<IfModule mod_deflate.c>
+    AddOutputFilterByType DEFLATE text/html text/plain text/css text/xml application/xml application/javascript text/javascript application/json image/svg+xml
+</IfModule>
+
+# ---------------------------------------------------------------
+# Browser caching. CSS/JS/images are linked with ?v=<file time>
+# (asset() helper) and uploads get random new names, so they can be
+# cached for a year: a changed file always has a new URL.
+# ---------------------------------------------------------------
+<IfModule mod_expires.c>
+    ExpiresActive On
+    ExpiresByType text/css "access plus 1 year"
+    ExpiresByType application/javascript "access plus 1 year"
+    ExpiresByType text/javascript "access plus 1 year"
+    ExpiresByType image/svg+xml "access plus 1 year"
+    ExpiresByType image/webp "access plus 1 year"
+    ExpiresByType image/jpeg "access plus 1 year"
+    ExpiresByType image/png "access plus 1 year"
+    ExpiresByType font/woff2 "access plus 1 year"
+    ExpiresByType font/woff "access plus 1 year"
+</IfModule>
+<IfModule mod_headers.c>
+    <FilesMatch "\.(css|js|svg|webp|jpe?g|png|woff2?)$">
+        Header set Cache-Control "public, max-age=31536000, immutable"
+    </FilesMatch>
+</IfModule>
+
+<IfModule mod_mime.c>
+    AddType font/woff2 .woff2
+    AddType font/woff .woff
+    AddType image/webp .webp
+    AddCharset utf-8 .css .js .svg
+</IfModule>

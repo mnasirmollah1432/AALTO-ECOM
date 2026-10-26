@@ -1,0 +1,6 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="400" height="500" viewBox="0 0 400 500" role="img" aria-label="No product photo yet">
+  <rect width="400" height="500" fill="#f2ede6"/>
+  <g fill="none" stroke="#c9bdae" stroke-width="7" stroke-linejoin="round" stroke-linecap="round">
+    <path d="M150 190 L120 205 L105 255 L135 262 L140 330 L260 330 L265 262 L295 255 L280 205 L250 190 C242 206 222 214 200 214 C178 214 158 206 150 190 Z"/>
+  </g>
+</svg>

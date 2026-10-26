@@ -1,0 +1,14 @@
+.env
+/storage/logs/*
+!/storage/logs/.gitkeep
+/public/uploads/*
+!/public/uploads/.gitkeep
+!/public/uploads/.htaccess
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/
+
+# Test run output (cookie jars) and generated fixtures (tests/make_fixtures.php, make_std_fixtures.php)
+/tests/*.txt
+/tests/fixtures/

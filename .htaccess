@@ -1,0 +1,38 @@
+# ---------------------------------------------------------------
+# Root .htaccess - only used when the web server's document root
+# is the project root (e.g. everything uploaded into public_html).
+# Every request is served from /public, so app/, database/,
+# storage/ and .env are never reachable from the web.
+# Preferred setup: point the document root directly at /public.
+#
+# Routes in ONE step (does not rely on public/.htaccess being
+# re-read after an internal rewrite, which some servers such as
+# LiteSpeed do not always do).
+# ---------------------------------------------------------------
+
+Options -Indexes
+DirectoryIndex index.php
+
+<IfModule mod_rewrite.c>
+    RewriteEngine On
+
+    # Pass the Authorization header to PHP (Steadfast webhook Bearer token)
+    RewriteCond %{HTTP:Authorization} .
+    RewriteRule .* - [E=HTTP_AUTHORIZATION:%{HTTP:Authorization}]
+
+    # Already inside public/: let public/.htaccess and real files handle it
+    RewriteRule ^public/ - [L]
+
+    # Real files in public/ (CSS, JS, images, favicon.ico): serve them from there
+    RewriteCond %{DOCUMENT_ROOT}/public/$1 -f
+    RewriteRule ^(.+)$ public/$1 [L]
+
+    # Everything else (pages, /health, /sitemap.xml ...) -> the front controller
+    RewriteRule ^ public/index.php [L,QSA]
+</IfModule>
+
+# Belt and braces: block sensitive files even if rewriting fails - dotfiles (.env,
+# .git, .htaccess), PHP's error_log, SQL dumps, backups/archives, logs, docs
+<FilesMatch "^\.(env|git|ht)|^(error_log|php_errorlog)$|\.(sql|gz|zip|tar|tgz|rar|7z|bak|old|orig|swp|md|log|ini|sh)$">
+    Require all denied
+</FilesMatch>
